@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.X'
+
+      - name: Install dependencies
+        run: npm install
+
+      -name: package lambda
+        run: npm package
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+        
+        - run: cd terraform && terraform init
+
+        - run: terraform plan
