@@ -91,7 +91,7 @@ resource "aws_api_gateway_account" "gateway_account" {
 
 resource "aws_lambda_function" "example" {
   function_name = "counter-source-${terraform.workspace}"
-  runtime       = "nodejs14.x"
+  runtime       = "nodejs18.x"
   handler       = "index.handler"
   filename      = "../counterLambda.zip"
   role             = aws_iam_role.lambda_role.arn
