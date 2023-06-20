@@ -20,7 +20,7 @@ jobs:
         run: npm install
 
       - name: package lambda
-        run: npm package
+        run: npm run package
 
       - uses: hashicorp/setup-terraform@v2
         with:
