@@ -25,6 +25,9 @@ jobs:
       - name: package lambda
         run: npm run package
 
+      - name: config aws creds
+        uses: aws-actions/configure-aws-credentials@v2
+        
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
