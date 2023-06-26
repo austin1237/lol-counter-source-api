@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "package": "rm -f counterLambda.zip && zip -r counterLambda.zip index.js node_modules"
+    "package": "rm -f counterLambda.zip && zip -r counterLambda.zip index.js node_modules ./src"
   },
   "dependencies": {
     "puppeteer": "^20.5.0",
