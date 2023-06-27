@@ -96,6 +96,7 @@ resource "aws_lambda_function" "example" {
   filename      = "../counterLambda.zip"
   role             = aws_iam_role.lambda_role.arn
   source_code_hash =  filebase64sha256("../counterLambda.zip")
+  layers = ["arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:31"]
   environment {
     variables = {
       BASE_COUNTER_URL = var.BASE_COUNTER_URL
