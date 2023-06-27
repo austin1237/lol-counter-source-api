@@ -3,7 +3,10 @@
     "package": "rm -f counterLambda.zip && zip -r counterLambda.zip index.js node_modules ./src"
   },
   "dependencies": {
-    "puppeteer": "^20.5.0",
-    "uuidv4": "^6.2.13"
+    "puppeteer-core": "19.6.3"
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "110.0.0"
   }
 }
+

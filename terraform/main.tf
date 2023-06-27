@@ -89,6 +89,13 @@ resource "aws_api_gateway_account" "gateway_account" {
   cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
 }
 
+resource "aws_lambda_layer_version" "chrome-layer" {
+  filename            = "../chromium-v114.0.0-layer.zip"
+  layer_name          = "chrome"
+  source_code_hash    = "${filebase64sha256("../chromium-v114.0.0-layer.zip")}"
+  compatible_runtimes = ["nodejs18.x"]
+}
+
 resource "aws_lambda_function" "example" {
   function_name = "counter-source-${terraform.workspace}"
   runtime       = "nodejs18.x"
@@ -96,7 +103,7 @@ resource "aws_lambda_function" "example" {
   filename      = "../counterLambda.zip"
   role             = aws_iam_role.lambda_role.arn
   source_code_hash =  filebase64sha256("../counterLambda.zip")
-  layers = ["arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:31"]
+  layers = [aws_lambda_layer_version.chrome-layer.arn]
   environment {
     variables = {
       BASE_COUNTER_URL = var.BASE_COUNTER_URL

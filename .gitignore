@@ -142,4 +142,4 @@ dist
 *.hcl
 
 #lambdas zip file
-*.zip
+*Lambda.zip
