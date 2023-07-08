@@ -1,15 +1,12 @@
-const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer");
 const champions = require('./src/champions');
 
 async function getCounters(championName) {
   const browser = await puppeteer.launch({
-    args: process.env.IS_LOCAL ? puppeteer.defaultArgs() : chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: process.env.IS_LOCAL
-      ? "/tmp/localChromium/chromium/mac-1162696/chrome-mac/Chromium.app/Contents/MacOS/Chromium"
-      : await chromium.executablePath(),
-    headless: process.env.IS_LOCAL ? false : chromium.headless,
+    headless: "new",
+    args: [
+      "--no-sandbox",
+    ]
   });
 
   const page = await browser.newPage();
@@ -31,8 +28,6 @@ async function getCounters(championName) {
   await browser.close();
   return counters;
 }
-
-
 
 exports.handler = async function (event, context) {
   const champName = event.queryStringParameters.champion;
@@ -57,9 +52,4 @@ exports.handler = async function (event, context) {
   return response
 };
 
-// test it locally 
-exports.handler({
-  queryStringParameters:{
-    champion: 'swain',
-  }
-});
+
