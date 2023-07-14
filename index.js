@@ -1,16 +1,15 @@
-const puppeteer = require("puppeteer");
 const champions = require('./src/champions');
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
 async function getCounters(championName) {
   const browser = await puppeteer.launch({
-    headless: "new",
-    args: [
-      "--no-sandbox",
-    ]
+    args: [...chromium.args, '--disable-gpu'],
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
-
   const page = await browser.newPage();
-  
   await page.goto(`${process.env.BASE_COUNTER_URL}/${championName}/counter`);
   const counters = await page.evaluate(() => {
     const container = document.querySelector('div.counters-list.best-win-rate');
@@ -24,7 +23,6 @@ async function getCounters(championName) {
     
     return {champions: names, winRates: winRates}
   });
-  
   await browser.close();
   return counters;
 }
@@ -32,7 +30,6 @@ async function getCounters(championName) {
 exports.handler = async function (event, context) {
   const champName = event.queryStringParameters.champion;
   if (champions.indexOf(champName) === -1){
-    console.log('not found')
     const response = {
       "statusCode": 404,
       "headers": {},
@@ -42,7 +39,6 @@ exports.handler = async function (event, context) {
     return response
   }
   const counters = await getCounters(champName);
-  console.log('counters', counters)
   const response = {
     "statusCode": 200,
     "headers": {},
@@ -51,5 +47,3 @@ exports.handler = async function (event, context) {
   };
   return response
 };
-
-

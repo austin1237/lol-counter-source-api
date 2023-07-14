@@ -1,5 +1,6 @@
 version: '3'
 services:
+  # node_modules shouldn't be copied over since puppeteer uses a binary that is os dependant
   puppeteer-lambda:
     build:
       context: .

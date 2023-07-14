@@ -1,4 +1,4 @@
-name: CI
+name: Deployment
 
 on:
   push:
@@ -11,39 +11,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.X'
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '18.X'
 
-      - name: Install dependencies
-        run: npm install
+      # - name: Install dependencies
+      #   run: npm install
 
-      - name: package lambda
-        run: npm run package
+      # build and push docker image
+      - run: ./ecr_image_push.sh
+
+     
           
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
+      # - uses: hashicorp/setup-terraform@v2
+      #   with:
+      #     terraform_version: 1.5.0
         
-      - run: cd terraform && terraform init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+      # - run: cd terraform && terraform init
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: 'us-east-1'
+      #     TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
           
 
-      - run: cd terraform && terraform plan
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+      # - run: cd terraform && terraform plan
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: 'us-east-1'
+      #     TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
         
-      - run: cd terraform && terraform apply -input=false -auto-approve
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+      # - run: cd terraform && terraform apply -input=false -auto-approve
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_DEFAULT_REGION: 'us-east-1'
+      #     TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}

@@ -39,6 +39,28 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
+resource "aws_iam_policy" "lambda_logs_policy" {
+  name        = "lambda-cloudwatch-logs-policy"
+  description = "Allows Lambda function to write logs to CloudWatch Logs"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*"
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role" "cloudwatch" {
   name = "api_gateway_cloudwatch_global-${terraform.workspace}"
 
@@ -85,31 +107,27 @@ resource "aws_iam_role_policy" "cloudwatch" {
 EOF
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_logs_policy_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_logs_policy.arn
+}
+
 resource "aws_api_gateway_account" "gateway_account" {
   cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
 }
 
-resource "aws_lambda_layer_version" "chrome-layer" {
-  filename            = "../chromium-v114.0.0-layer.zip"
-  layer_name          = "chrome"
-  source_code_hash    = "${filebase64sha256("../chromium-v114.0.0-layer.zip")}"
-  compatible_runtimes = ["nodejs18.x"]
-}
-
 resource "aws_lambda_function" "example" {
   function_name = "counter-source-${terraform.workspace}"
-  runtime       = "nodejs18.x"
-  handler       = "index.handler"
-  filename      = "../counterLambda.zip"
+  memory_size        = 2048
+  timeout = 30
   role             = aws_iam_role.lambda_role.arn
-  source_code_hash =  filebase64sha256("../counterLambda.zip")
-  layers = [aws_lambda_layer_version.chrome-layer.arn]
+  image_uri        = "${var.AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/lol-counter-source@${var.DOCKER_IMAGE_SHA}" # Replace with your Docker image URI
+  package_type     = "Image"
   environment {
     variables = {
       BASE_COUNTER_URL = var.BASE_COUNTER_URL
     }
   }
-
 }
 
 resource "aws_api_gateway_rest_api" "counter_source" {
