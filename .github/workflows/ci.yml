@@ -21,9 +21,13 @@ jobs:
 
       # build and push docker image
       - run: ./ecr_image_push.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
 
-     
-          
+
+               
       # - uses: hashicorp/setup-terraform@v2
       #   with:
       #     terraform_version: 1.5.0
