@@ -1,4 +1,3 @@
-const champions = require('./src/champions');
 const puppeteer = require("puppeteer-core");
 const chromium = require("@sparticuz/chromium");
 
@@ -29,7 +28,17 @@ async function getCounters(championName) {
 
 exports.handler = async function (event, context) {
   const champName = event.queryStringParameters.champion;
-  if (champions.indexOf(champName) === -1){
+  try {
+    const counters = await getCounters(champName);
+    const response = {
+      "statusCode": 200,
+      "headers": {},
+      "body": JSON.stringify(counters),
+      "isBase64Encoded": false
+    }
+    return response
+  } catch (error) {
+    console.error(error);
     const response = {
       "statusCode": 404,
       "headers": {},
@@ -37,13 +46,5 @@ exports.handler = async function (event, context) {
       "isBase64Encoded": false
     };
     return response
-  }
-  const counters = await getCounters(champName);
-  const response = {
-    "statusCode": 200,
-    "headers": {},
-    "body": JSON.stringify(counters),
-    "isBase64Encoded": false
   };
-  return response
 };
