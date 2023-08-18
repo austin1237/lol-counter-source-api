@@ -2,11 +2,11 @@
 An api/on demand webscraber that collects league of legends counter data.
 
 ## Why is this lambda using a container deployment rather than the standard zip deployment?
-[Pupeteer](https://pptr.dev/) requires a chrome/chromium binary which execeeded the standard [lambda size limit](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#function-configuration-deployment-and-execution). Using a container image greatly increases the limit and allows for the binary to be deployed. Also setting up a container image seemed less janky than using a layer. Currently this service uses (@sparticuz/chromium)[https://github.com/Sparticuz/chromium] due to the standard pupeeteer install comming across permissions issues when running in the deployed aws env.
+[Pupeteer](https://pptr.dev/) requires a chrome/chromium binary which execeeded the standard [lambda size limit](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html#function-configuration-deployment-and-execution). Using a container image greatly increases the limit and allows for the binary to be deployed. Also setting up a container image seemed less janky than using a layer. Currently this service uses [@sparticuz/chromium](https://github.com/Sparticuz/chromium) due to the standard pupeeteer install comming across permissions issues when running in the deployed aws env.
 
 ## Prerequisites
 You must have the following installed/configured on your system for this to work correctly<br />
-1. [Docker](https://www.docker.com/community-edition)
+1. [Docker](https://www.docker.com/)
 2. [Docker-Compose](https://docs.docker.com/compose/)
 
 ## Environment Variables
@@ -16,7 +16,7 @@ Url of the website that will be scraped
 
 
 ## Development Environment
-The development enviroment uses [aws's node 18 image](https://gallery.ecr.aws/lambda/nodejs) to mimic as close to what gonna be running when deployed as possible
+The development environment uses [aws's node 18 image](https://gallery.ecr.aws/lambda/nodejs) to mimic as close to what gonna be running when deployed as possible
 
 ### Start up
 To build the lambdas and spin up the distributed development environment run the following command
@@ -25,7 +25,7 @@ To build the lambdas and spin up the distributed development environment run the
 docker-compose up
 ```
 
-The output is similar to what you would see in cloudwatch logs ex..
+The output is similar to what you would see in cloudwatch logs ex.
 
 ```bash
 lol-counter-source-api-puppeteer-lambda-1  | 18 Aug 2023 09:47:04,515 [INFO] (rapid) exec '/var/runtime/bootstrap' (cwd=/var/task, handler=)
@@ -59,7 +59,7 @@ Terraform has a feature called [remote state](https://www.terraform.io/docs/stat
 This project **requires** this feature to be configured. To configure **USE THE FOLLOWING COMMAND ONCE PER TEAM**.
 
 ```bash
-cd terraform/remote-state terraform
+cd terraform/remote-state
 terraform init
 terraform apply
 ```
