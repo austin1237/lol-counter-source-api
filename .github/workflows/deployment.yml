@@ -1,0 +1,143 @@
+name: Deployment
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:    
+  build_and_push_docker_image:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push docker dev image to Amazon ECR 
+        if: github.ref == 'refs/heads/dev'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: lol-counter-source
+          IMAGE_TAG: dev
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Build, tag, and push docker prod image to Amazon ECR 
+        if: github.ref == 'refs/heads/main'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: lol-counter-source
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  dev_deployment:
+    if: github.ref == 'refs/heads/dev'
+    needs: build_and_push_docker_image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Set AWS account ID as environment variable
+        run: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_VAR_AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> $GITHUB_ENV
+      
+      - name: Set most recent pushed taged dev ecr image sha as environment variable
+        run: |
+          SHA=$(aws ecr list-images --repository-name lol-counter-source --query 'imageIds[?imageTag==`dev`]' --output text | awk '{print $1}')
+          echo "TF_VAR_DOCKER_IMAGE_SHA=${SHA}" >> $GITHUB_ENV
+           
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - run: cd terraform && terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+          
+      - run: cd terraform && terraform plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+        
+      - run: cd terraform && terraform apply -input=false -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+
+  prod_deployment:
+    if: github.ref == 'refs/heads/main'
+    needs: build_and_push_docker_image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Set AWS account ID as environment variable
+        run: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "TF_VAR_AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> $GITHUB_ENV
+      
+      - name: Set most recent pushed taged latest ecr image sha as environment variable
+        run: |
+          SHA=$(aws ecr list-images --repository-name lol-counter-source --query 'imageIds[?imageTag==`dev`]' --output text | awk '{print $1}')
+          echo "TF_VAR_DOCKER_IMAGE_SHA=${SHA}" >> $GITHUB_ENV
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - run: cd terraform && terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+          
+      - run: cd terraform && (terraform workspace new prod || true) && terraform workspace select prod && terraform plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
+        
+      - run: cd terraform && (terraform workspace new prod || true) && terraform workspace select prod && terraform apply -input=false -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+          TF_VAR_BASE_COUNTER_URL: ${{ secrets.BASE_COUNTER_URL }}
