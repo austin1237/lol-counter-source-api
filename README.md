@@ -19,7 +19,7 @@ Url of the website that will be scraped
 The development environment uses [aws's node 18 image](https://gallery.ecr.aws/lambda/nodejs) to mimic as close to what gonna be running when deployed as possible
 
 ### Start up
-To build the lambdas and spin up the distributed development environment run the following command
+To build the image and spin up container
 
 ```bash
 docker-compose up
