@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/nodejs:18
+FROM public.ecr.aws/lambda/nodejs:18.2023.08.17.15
 
 # Copy package.json and package-lock.json
 COPY package*.json ${LAMBDA_TASK_ROOT}/
