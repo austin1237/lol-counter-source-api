@@ -114,7 +114,7 @@ jobs:
       
       - name: Set most recent pushed taged latest ecr image sha as environment variable
         run: |
-          SHA=$(aws ecr list-images --repository-name lol-counter-source --query 'imageIds[?imageTag==`dev`]' --output text | awk '{print $1}')
+          SHA=$(aws ecr list-images --repository-name lol-counter-source --query 'imageIds[?imageTag==`latest`]' --output text | awk '{print $1}')
           echo "TF_VAR_DOCKER_IMAGE_SHA=${SHA}" >> $GITHUB_ENV
       
       - uses: hashicorp/setup-terraform@v2
