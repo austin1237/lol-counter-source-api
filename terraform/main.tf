@@ -40,7 +40,7 @@ EOF
 }
 
 resource "aws_iam_policy" "lambda_logs_policy" {
-  name        = "lambda-cloudwatch-logs-policy"
+  name        = "lambda-cloudwatch-logs-policy-${terraform.workspace}"
   description = "Allows Lambda function to write logs to CloudWatch Logs"
 
   policy = <<EOF
